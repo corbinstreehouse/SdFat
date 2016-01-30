@@ -274,6 +274,10 @@ class SdSpiCard {
   uint8_t m_sckDivisor;
   uint8_t m_status;
   uint8_t m_type;
+#if ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
+   // 125000 is SPI_SCK_INIT_DIVISOR, which we start out with
+  SPISettings m_spiSettings = SPISettings(125000, MSBFIRST, SPI_MODE0);
+#endif
 };
 //==============================================================================
 /**

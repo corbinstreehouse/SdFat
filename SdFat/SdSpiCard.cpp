@@ -130,7 +130,15 @@ bool SdSpiCard::begin(m_spi_t* spi, uint8_t chipSelectPin, uint8_t sckDivisor) {
 
   // set SCK rate for initialization commands
   m_sckDivisor = SPI_SCK_INIT_DIVISOR;
-  spiInit(m_sckDivisor);
+
+#if ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
+  if (useSpiTransactions()) {
+    SPI.beginTransaction(m_spiSettings);
+  } else
+#endif  // ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
+  {
+    spiInit(m_sckDivisor);
+  }
 
   // must supply min of 74 clock cycles with CS high.
   for (uint8_t i = 0; i < 10; i++) {
@@ -194,6 +202,22 @@ bool SdSpiCard::begin(m_spi_t* spi, uint8_t chipSelectPin, uint8_t sckDivisor) {
   }
   chipSelectHigh();
   m_sckDivisor = sckDivisor;
+  if (m_sckDivisor == SPI_CLOCK_DIV2) {
+    m_spiSettings = SPISettings(12000000, MSBFIRST, SPI_MODE0);
+  } else if (m_sckDivisor == SPI_CLOCK_DIV4) {
+    m_spiSettings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
+  } else if (m_sckDivisor == SPI_CLOCK_DIV8) {
+    m_spiSettings = SPISettings(2000000, MSBFIRST, SPI_MODE0);
+  } else if (m_sckDivisor == SPI_CLOCK_DIV16) {
+    m_spiSettings = SPISettings(1000000, MSBFIRST, SPI_MODE0);
+  } else if (m_sckDivisor == SPI_CLOCK_DIV32) {
+    m_spiSettings = SPISettings(500000, MSBFIRST, SPI_MODE0);
+  } else if (m_sckDivisor == SPI_CLOCK_DIV64) {
+    m_spiSettings = SPISettings(250000, MSBFIRST, SPI_MODE0);
+  } else { /* m_sckDivisor == SPI_CLOCK_DIV128 */
+    m_spiSettings = SPISettings(125000, MSBFIRST, SPI_MODE0);
+  }
+  
   return true;
 
 fail:
@@ -289,10 +313,13 @@ void SdSpiCard::chipSelectHigh() {
 void SdSpiCard::chipSelectLow() {
 #if ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
   if (useSpiTransactions()) {
-    SPI.beginTransaction(SPISettings());
-  }
+    SPI.beginTransaction(m_spiSettings);
+  } else
 #endif  // ENABLE_SPI_TRANSACTION && defined(SPI_HAS_TRANSACTION)
-  spiInit(m_sckDivisor);
+  {
+    spiInit(m_sckDivisor);
+  }
+  
   digitalWrite(m_chipSelectPin, LOW);
 }
 //------------------------------------------------------------------------------

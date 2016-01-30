@@ -139,6 +139,7 @@ class SdSpiLib {
    * \param[in] divisor SCK clock divider relative to the system clock.
    */
   void init(uint8_t divisor) {
+      /*
     SPI.setBitOrder(MSBFIRST);
     SPI.setDataMode(SPI_MODE0);
 #ifndef SPI_CLOCK_DIV128
@@ -162,6 +163,7 @@ class SdSpiLib {
     }
     SPI.setClockDivider(v);
 #endif  // SPI_CLOCK_DIV128
+       */
   }
   /** Receive a byte.
    *
